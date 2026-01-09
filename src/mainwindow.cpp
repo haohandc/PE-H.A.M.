@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     , m_isModified(false)
 {
     ui->setupUi(this);  // 将UI绑定到当前窗口
-    this->setWindowTitle(tr("PE HAM(Header.Analyzer.Modifier)"));
+    this->setWindowTitle(tr("PE H.A.M."));
     this->setAcceptDrops(true);
     initPETreeWidget();  // 初始化PE结构树
     // 初始化Table样式
