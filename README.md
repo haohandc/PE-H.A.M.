@@ -1,3 +1,5 @@
+PE Header Analyzer & Modifier
+一款PE文件头解析器&修改器
 # 特点
 使用Qt6进行编写，拥有现代化的UI（相较于CFF Explorer）
 缺点：只能运行在win10/win11系统
