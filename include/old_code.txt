@@ -1,0 +1,372 @@
+// ========== 信号槽：TreeWidget节点点击 ==========
+//AI出问题了？column是未被使用的形参
+// void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
+// {
+//     if (m_curFilePath.isEmpty() || !m_peModifier) return;
+//
+//     // 清空TableWidget
+//     ui->tableWidget->clearContents();
+//     ui->tableWidget->setRowCount(0);
+//     ui->tableWidget->setColumnCount(2);
+//     ui->tableWidget->setHorizontalHeaderLabels({tr("字段名"), tr("值")});
+//
+//     // 根据点击的节点填充数据
+//     QString itemText = item->text(0);
+//     if (itemText == tr("Dos Header")) {
+//         // 示例：填充Dos Header的e_magic
+//         WORD e_magic = m_peModifier->getDosHeader()->e_magic;
+//         ui->tableWidget->insertRow(0);
+//         ui->tableWidget->setItem(0, 0, new QTableWidgetItem(tr("e_magic")));
+//         ui->tableWidget->setItem(0, 1, new QTableWidgetItem(QString("0x%1").arg(e_magic, 4, 16, QChar('0'))));
+//     } else if (itemText == tr("File Header")) {
+//         // 示例：填充File Characteristics
+//         WORD charac = m_peModifier->getFileCharacteristics();
+//         ui->tableWidget->insertRow(0);
+//         ui->tableWidget->setItem(0, 0, new QTableWidgetItem(tr("Characteristics")));
+//         ui->tableWidget->setItem(0, 1, new QTableWidgetItem(QString("0x%1").arg(charac, 4, 16, QChar('0'))));
+//     }
+// }
+
+
+/*
+void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, [[maybe_unused]] int column)
+{
+        if (m_curFilePath.isEmpty() || !m_peModifier ||
+        m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_UNKNOWN) {
+        QMessageBox::warning(this, tr("警告"), tr("PE文件未正确解析！"));
+        return;
+    }
+
+    // 清空TableWidget
+    ui->tableWidget->clearContents();
+    ui->tableWidget->setRowCount(0);
+    ui->tableWidget->setColumnCount(2);
+    ui->tableWidget->setHorizontalHeaderLabels({tr("字段名"), tr("值")});
+
+    // 根据点击的节点填充数据
+    QString itemText = item->text(0);
+    if (itemText == tr("Dos Header")) {
+        // 补充Dos Header完整信息
+        PIMAGE_DOS_HEADER dosHeader = m_peModifier->getDosHeader();
+        if (dosHeader) {
+            QList<QPair<QString, QString>> dosFields = {
+                {tr("e_magic"), QString("0x%1").arg(dosHeader->e_magic, 4, 16, QChar('0'))},
+                {tr("e_cblp"), QString("0x%1").arg(dosHeader->e_cblp, 4, 16, QChar('0'))},
+                {tr("e_cp"), QString("0x%1").arg(dosHeader->e_cp, 4, 16, QChar('0'))},
+                {tr("e_crlc"), QString("0x%1").arg(dosHeader->e_crlc, 4, 16, QChar('0'))},
+                {tr("e_cparhdr"), QString("0x%1").arg(dosHeader->e_cparhdr, 4, 16, QChar('0'))},
+                {tr("e_minalloc"), QString("0x%1").arg(dosHeader->e_minalloc, 4, 16, QChar('0'))},
+                {tr("e_maxalloc"), QString("0x%1").arg(dosHeader->e_maxalloc, 4, 16, QChar('0'))},
+                {tr("e_ss"), QString("0x%1").arg(dosHeader->e_ss, 4, 16, QChar('0'))},
+                {tr("e_sp"), QString("0x%1").arg(dosHeader->e_sp, 4, 16, QChar('0'))},
+                {tr("e_csum"), QString("0x%1").arg(dosHeader->e_csum, 4, 16, QChar('0'))},
+                {tr("e_ip"), QString("0x%1").arg(dosHeader->e_ip, 4, 16, QChar('0'))},
+                {tr("e_cs"), QString("0x%1").arg(dosHeader->e_cs, 4, 16, QChar('0'))},
+                {tr("e_lfarlc"), QString("0x%1").arg(dosHeader->e_lfarlc, 4, 16, QChar('0'))},
+                {tr("e_ovno"), QString("0x%1").arg(dosHeader->e_ovno, 4, 16, QChar('0'))},
+                {tr("e_lfanew"), QString("0x%1").arg(dosHeader->e_lfanew, 8, 16, QChar('0'))}
+            };
+
+            for (int i = 0; i < dosFields.size(); ++i) {
+                ui->tableWidget->insertRow(i);
+                ui->tableWidget->setItem(i, 0, new QTableWidgetItem(dosFields[i].first));
+                ui->tableWidget->setItem(i, 1, new QTableWidgetItem(dosFields[i].second));
+            }
+        }
+    } else if (itemText == tr("File Header")) {
+        // 1. 显示File Header基础信息
+        WORD charac = m_peModifier->getFileCharacteristics();
+        QList<QPair<QString, QString>> fileFields = {
+            {tr("Machine"), QString("0x%1").arg(m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_32 ?
+                m_peModifier->getNtHeaders32()->FileHeader.Machine :
+                m_peModifier->getNtHeaders64()->FileHeader.Machine, 4, 16, QChar('0'))},
+            {tr("NumberOfSections"), QString("%1").arg(m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_32 ?
+                m_peModifier->getNtHeaders32()->FileHeader.NumberOfSections :
+                m_peModifier->getNtHeaders64()->FileHeader.NumberOfSections)},
+            {tr("TimeDateStamp"), QString("0x%1").arg(m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_32 ?
+                m_peModifier->getNtHeaders32()->FileHeader.TimeDateStamp :
+                m_peModifier->getNtHeaders64()->FileHeader.TimeDateStamp, 8, 16, QChar('0'))},
+            {tr("PointerToSymbolTable"), QString("0x%1").arg(m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_32 ?
+                m_peModifier->getNtHeaders32()->FileHeader.PointerToSymbolTable :
+                m_peModifier->getNtHeaders64()->FileHeader.PointerToSymbolTable, 8, 16, QChar('0'))},
+            {tr("NumberOfSymbols"), QString("%1").arg(m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_32 ?
+                m_peModifier->getNtHeaders32()->FileHeader.NumberOfSymbols :
+                m_peModifier->getNtHeaders64()->FileHeader.NumberOfSymbols)},
+            {tr("SizeOfOptionalHeader"), QString("%1").arg(m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_32 ?
+                m_peModifier->getNtHeaders32()->FileHeader.SizeOfOptionalHeader :
+                m_peModifier->getNtHeaders64()->FileHeader.SizeOfOptionalHeader)},
+            {tr("Characteristics"), QString("0x%1 (点击编辑)").arg(charac, 4, 16, QChar('0'))}
+        };
+
+        for (int i = 0; i < fileFields.size(); ++i) {
+            ui->tableWidget->insertRow(i);
+            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(fileFields[i].first));
+            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(fileFields[i].second));
+        }
+
+        // 2. 弹出File Characteristics编辑对话框
+        CharacteristicsDialog dlg(EditType::FILE_CHARAC, charac, this);
+        if (dlg.exec() == QDialog::Accepted) {
+            // 用户确认修改，同步到PEModifier
+            WORD newCharac = dlg.getModifiedValue();
+            m_peModifier->setFileCharacteristics(newCharac);
+            // 更新TableWidget显示
+            ui->tableWidget->setItem(6, 1, new QTableWidgetItem(QString("0x%1").arg(newCharac, 4, 16, QChar('0'))));
+            ui->statusbar->showMessage(tr("File Characteristics已修改，需保存生效"));
+        }
+    } else if (itemText == tr("Optional Header")) {
+        // 1. 显示Optional Header基础信息
+        WORD dllCharac = m_peModifier->getDllCharacteristics();
+        QList<QPair<QString, QString>> optFields;
+
+        if (m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_32) {
+            PIMAGE_OPTIONAL_HEADER32 optHeader = &m_peModifier->getNtHeaders32()->OptionalHeader;
+            optFields = {
+                {tr("Magic"), QString("0x%1").arg(optHeader->Magic, 4, 16, QChar('0'))},
+                {tr("MajorLinkerVersion"), QString("%1").arg(optHeader->MajorLinkerVersion)},
+                {tr("MinorLinkerVersion"), QString("%1").arg(optHeader->MinorLinkerVersion)},
+                {tr("SizeOfCode"), QString("0x%1").arg(optHeader->SizeOfCode, 8, 16, QChar('0'))},
+                {tr("SizeOfInitializedData"), QString("0x%1").arg(optHeader->SizeOfInitializedData, 8, 16, QChar('0'))},
+                {tr("SizeOfUninitializedData"), QString("0x%1").arg(optHeader->SizeOfUninitializedData, 8, 16, QChar('0'))},
+                {tr("AddressOfEntryPoint"), QString("0x%1").arg(optHeader->AddressOfEntryPoint, 8, 16, QChar('0'))},
+                {tr("BaseOfCode"), QString("0x%1").arg(optHeader->BaseOfCode, 8, 16, QChar('0'))},
+                {tr("BaseOfData"), QString("0x%1").arg(optHeader->BaseOfData, 8, 16, QChar('0'))},
+                {tr("ImageBase"), QString("0x%1").arg(optHeader->ImageBase, 8, 16, QChar('0'))},
+                {tr("SectionAlignment"), QString("0x%1").arg(optHeader->SectionAlignment, 8, 16, QChar('0'))},
+                {tr("FileAlignment"), QString("0x%1").arg(optHeader->FileAlignment, 8, 16, QChar('0'))},
+                {tr("DllCharacteristics"), QString("0x%1 (点击编辑)").arg(dllCharac, 4, 16, QChar('0'))}
+            };
+        } else if (m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_64) {
+            PIMAGE_OPTIONAL_HEADER64 optHeader = &m_peModifier->getNtHeaders64()->OptionalHeader;
+            optFields = {
+                {tr("Magic"), QString("0x%1").arg(optHeader->Magic, 4, 16, QChar('0'))},
+                {tr("MajorLinkerVersion"), QString("%1").arg(optHeader->MajorLinkerVersion)},
+                {tr("MinorLinkerVersion"), QString("%1").arg(optHeader->MinorLinkerVersion)},
+                {tr("SizeOfCode"), QString("0x%1").arg(optHeader->SizeOfCode, 8, 16, QChar('0'))},
+                {tr("SizeOfInitializedData"), QString("0x%1").arg(optHeader->SizeOfInitializedData, 8, 16, QChar('0'))},
+                {tr("SizeOfUninitializedData"), QString("0x%1").arg(optHeader->SizeOfUninitializedData, 8, 16, QChar('0'))},
+                {tr("AddressOfEntryPoint"), QString("0x%1").arg(optHeader->AddressOfEntryPoint, 8, 16, QChar('0'))},
+                {tr("BaseOfCode"), QString("0x%1").arg(optHeader->BaseOfCode, 8, 16, QChar('0'))},
+                {tr("ImageBase"), QString("0x%1").arg(optHeader->ImageBase, 16, 16, QChar('0'))},
+                {tr("SectionAlignment"), QString("0x%1").arg(optHeader->SectionAlignment, 8, 16, QChar('0'))},
+                {tr("FileAlignment"), QString("0x%1").arg(optHeader->FileAlignment, 8, 16, QChar('0'))},
+                {tr("DllCharacteristics"), QString("0x%1 (点击编辑)").arg(dllCharac, 4, 16, QChar('0'))}
+            };
+        }
+
+        for (int i = 0; i < optFields.size(); ++i) {
+            ui->tableWidget->insertRow(i);
+            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(optFields[i].first));
+            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(optFields[i].second));
+        }
+
+        // 2. 弹出DLL Characteristics编辑对话框
+        CharacteristicsDialog dlg(EditType::DLL_CHARAC, dllCharac, this);
+        if (dlg.exec() == QDialog::Accepted) {
+            WORD newDllCharac = dlg.getModifiedValue();
+            m_peModifier->setDllCharacteristics(newDllCharac);
+            // 更新TableWidget显示
+            ui->tableWidget->setItem(optFields.size()-1, 1, new QTableWidgetItem(QString("0x%1").arg(newDllCharac, 4, 16, QChar('0'))));
+            ui->statusbar->showMessage(tr("DLL Characteristics已修改，需保存生效"));
+        }
+    }
+}
+
+*/
+/*
+void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, [[maybe_unused]] int column)
+{
+    // 1. 强化空指针防护（核心崩溃点）
+    if (m_curFilePath.isEmpty() || !m_peModifier ||
+        m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_UNKNOWN) {
+        QMessageBox::warning(this, tr("警告"), tr("PE文件未打开"));
+        return;
+    }
+
+    // 清空TableWidget
+    ui->tableWidget->clearContents();
+    ui->tableWidget->setRowCount(0);
+    ui->tableWidget->setColumnCount(2);
+    ui->tableWidget->setHorizontalHeaderLabels({tr("字段名"), tr("值")});
+
+    // 根据点击的节点填充数据
+    QString itemText = item->text(0);
+    if (itemText == tr("Dos Header")) {
+        PIMAGE_DOS_HEADER dosHeader = m_peModifier->getDosHeader();
+        if (!dosHeader) { // 空指针防护
+            QMessageBox::warning(this, tr("警告"), tr("Dos Header解析失败！"));
+            return;
+        }
+        // 原有Dos Header逻辑（不变）
+        QList<QPair<QString, QString>> dosFields = {
+            {tr("e_magic"), QString("0x%1").arg(dosHeader->e_magic, 4, 16, QChar('0'))},
+            {tr("e_cblp"), QString("0x%1").arg(dosHeader->e_cblp, 4, 16, QChar('0'))},
+            {tr("e_cp"), QString("0x%1").arg(dosHeader->e_cp, 4, 16, QChar('0'))},
+            {tr("e_crlc"), QString("0x%1").arg(dosHeader->e_crlc, 4, 16, QChar('0'))},
+            {tr("e_cparhdr"), QString("0x%1").arg(dosHeader->e_cparhdr, 4, 16, QChar('0'))},
+            {tr("e_minalloc"), QString("0x%1").arg(dosHeader->e_minalloc, 4, 16, QChar('0'))},
+            {tr("e_maxalloc"), QString("0x%1").arg(dosHeader->e_maxalloc, 4, 16, QChar('0'))},
+            {tr("e_ss"), QString("0x%1").arg(dosHeader->e_ss, 4, 16, QChar('0'))},
+            {tr("e_sp"), QString("0x%1").arg(dosHeader->e_sp, 4, 16, QChar('0'))},
+            {tr("e_csum"), QString("0x%1").arg(dosHeader->e_csum, 4, 16, QChar('0'))},
+            {tr("e_ip"), QString("0x%1").arg(dosHeader->e_ip, 4, 16, QChar('0'))},
+            {tr("e_cs"), QString("0x%1").arg(dosHeader->e_cs, 4, 16, QChar('0'))},
+            {tr("e_lfarlc"), QString("0x%1").arg(dosHeader->e_lfarlc, 4, 16, QChar('0'))},
+            {tr("e_ovno"), QString("0x%1").arg(dosHeader->e_ovno, 4, 16, QChar('0'))},
+            {tr("e_lfanew"), QString("0x%1").arg(dosHeader->e_lfanew, 8, 16, QChar('0'))}
+        };
+
+        for (int i = 0; i < dosFields.size(); ++i) {
+            ui->tableWidget->insertRow(i);
+            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(dosFields[i].first));
+            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(dosFields[i].second));
+        }
+    } else if (itemText == tr("File Header")) {
+        // 2. 获取File Characteristics
+        WORD charac = m_peModifier->getFileCharacteristics();
+        if (charac == 0 && m_peModifier->getPEType() != PEFile::Header::PEHeaderReader::PE_UNKNOWN) {
+            QMessageBox::warning(this, tr("警告"), tr("File Characteristics解析失败！"));
+            return;
+        }
+
+        // 3. 分PE类型获取FileHeader
+        QList<QPair<QString, QString>> fileFields;
+        if (m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_32) {
+            PIMAGE_NT_HEADERS32 nt32 = m_peModifier->getNtHeaders32();
+            if (!nt32) {
+                QMessageBox::warning(this, tr("警告"), tr("PE32头解析失败！"));
+                return;
+            }
+            fileFields = {
+                {tr("Machine"), QString("0x%1").arg(nt32->FileHeader.Machine, 4, 16, QChar('0'))},
+                {tr("NumberOfSections"), QString("%1").arg(nt32->FileHeader.NumberOfSections)},
+                {tr("TimeDateStamp"), QString("0x%1").arg(nt32->FileHeader.TimeDateStamp, 8, 16, QChar('0'))},
+                {tr("PointerToSymbolTable"), QString("0x%1").arg(nt32->FileHeader.PointerToSymbolTable, 8, 16, QChar('0'))},
+                {tr("NumberOfSymbols"), QString("%1").arg(nt32->FileHeader.NumberOfSymbols)},
+                {tr("SizeOfOptionalHeader"), QString("%1").arg(nt32->FileHeader.SizeOfOptionalHeader)},
+                {tr("Characteristics"), QString("0x%1 (点击编辑)").arg(charac, 4, 16, QChar('0'))}
+            };
+        } else if (m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_64) {
+            PIMAGE_NT_HEADERS64 nt64 = m_peModifier->getNtHeaders64();
+            if (!nt64) {
+                QMessageBox::warning(this, tr("警告"), tr("PE64头解析失败！"));
+                return;
+            }
+            fileFields = {
+                {tr("Machine"), QString("0x%1").arg(nt64->FileHeader.Machine, 4, 16, QChar('0'))},
+                {tr("NumberOfSections"), QString("%1").arg(nt64->FileHeader.NumberOfSections)},
+                {tr("TimeDateStamp"), QString("0x%1").arg(nt64->FileHeader.TimeDateStamp, 8, 16, QChar('0'))},
+                {tr("PointerToSymbolTable"), QString("0x%1").arg(nt64->FileHeader.PointerToSymbolTable, 8, 16, QChar('0'))},
+                {tr("NumberOfSymbols"), QString("%1").arg(nt64->FileHeader.NumberOfSymbols)},
+                {tr("SizeOfOptionalHeader"), QString("%1").arg(nt64->FileHeader.SizeOfOptionalHeader)},
+                {tr("Characteristics"), QString("0x%1 (点击编辑)").arg(charac, 4, 16, QChar('0'))}
+            };
+        }
+
+        // 填充TableWidget
+        for (int i = 0; i < fileFields.size(); ++i) {
+            ui->tableWidget->insertRow(i);
+            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(fileFields[i].first));
+            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(fileFields[i].second));
+        }
+
+        // 4. 弹出对话框（添加异常捕获）
+        try {
+            CharacteristicsDialog dlg(EditType::FILE_CHARAC, charac, this);
+            if (dlg.exec() == QDialog::Accepted) {
+                WORD newCharac = dlg.getModifiedValue();
+                int ret = m_peModifier->setFileCharacteristics(newCharac);
+                if (ret != SUCCESS) { // 写入失败提示
+                    QMessageBox::warning(this, tr("警告"), tr("修改Characteristics失败！错误码：%1").arg(ret));
+                    return;
+                }
+                // 更新显示
+                ui->tableWidget->setItem(6, 1, new QTableWidgetItem(QString("0x%1").arg(newCharac, 4, 16, QChar('0'))));
+                ui->statusbar->showMessage(tr("File Characteristics已修改，需保存生效"));
+            }
+        } catch (...) { // 捕获所有异常，避免闪退
+            QMessageBox::critical(this, tr("错误"), tr("打开编辑对话框失败！"));
+            return;
+        }
+    } else if (itemText == tr("Optional Header")) {
+        // 5. 安全获取DLL Characteristics
+        WORD dllCharac = m_peModifier->getDllCharacteristics();
+        if (dllCharac == 0 && m_peModifier->getPEType() != PEFile::Header::PEHeaderReader::PE_UNKNOWN) {
+            QMessageBox::warning(this, tr("警告"), tr("DLL Characteristics解析失败！"));
+            return;
+        }
+
+        // 分PE类型填充Optional Header
+        QList<QPair<QString, QString>> optFields;
+        if (m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_32) {
+            PIMAGE_NT_HEADERS32 nt32 = m_peModifier->getNtHeaders32();
+            if (!nt32) {
+                QMessageBox::warning(this, tr("警告"), tr("PE32头解析失败！"));
+                return;
+            }
+            PIMAGE_OPTIONAL_HEADER32 optHeader = &nt32->OptionalHeader;
+            optFields = {
+                {tr("Magic"), QString("0x%1").arg(optHeader->Magic, 4, 16, QChar('0'))},
+                {tr("MajorLinkerVersion"), QString("%1").arg(optHeader->MajorLinkerVersion)},
+                {tr("MinorLinkerVersion"), QString("%1").arg(optHeader->MinorLinkerVersion)},
+                {tr("SizeOfCode"), QString("0x%1").arg(optHeader->SizeOfCode, 8, 16, QChar('0'))},
+                {tr("SizeOfInitializedData"), QString("0x%1").arg(optHeader->SizeOfInitializedData, 8, 16, QChar('0'))},
+                {tr("SizeOfUninitializedData"), QString("0x%1").arg(optHeader->SizeOfUninitializedData, 8, 16, QChar('0'))},
+                {tr("AddressOfEntryPoint"), QString("0x%1").arg(optHeader->AddressOfEntryPoint, 8, 16, QChar('0'))},
+                {tr("BaseOfCode"), QString("0x%1").arg(optHeader->BaseOfCode, 8, 16, QChar('0'))},
+                {tr("BaseOfData"), QString("0x%1").arg(optHeader->BaseOfData, 8, 16, QChar('0'))},
+                {tr("ImageBase"), QString("0x%1").arg(optHeader->ImageBase, 8, 16, QChar('0'))},
+                {tr("SectionAlignment"), QString("0x%1").arg(optHeader->SectionAlignment, 8, 16, QChar('0'))},
+                {tr("FileAlignment"), QString("0x%1").arg(optHeader->FileAlignment, 8, 16, QChar('0'))},
+                {tr("DllCharacteristics"), QString("0x%1 (点击编辑)").arg(dllCharac, 4, 16, QChar('0'))}
+            };
+        } else if (m_peModifier->getPEType() == PEFile::Header::PEHeaderReader::PE_64) {
+            PIMAGE_NT_HEADERS64 nt64 = m_peModifier->getNtHeaders64();
+            if (!nt64) {
+                QMessageBox::warning(this, tr("警告"), tr("PE64头解析失败！"));
+                return;
+            }
+            PIMAGE_OPTIONAL_HEADER64 optHeader = &nt64->OptionalHeader;
+            optFields = {
+                {tr("Magic"), QString("0x%1").arg(optHeader->Magic, 4, 16, QChar('0'))},
+                {tr("MajorLinkerVersion"), QString("%1").arg(optHeader->MajorLinkerVersion)},
+                {tr("MinorLinkerVersion"), QString("%1").arg(optHeader->MinorLinkerVersion)},
+                {tr("SizeOfCode"), QString("0x%1").arg(optHeader->SizeOfCode, 8, 16, QChar('0'))},
+                {tr("SizeOfInitializedData"), QString("0x%1").arg(optHeader->SizeOfInitializedData, 8, 16, QChar('0'))},
+                {tr("SizeOfUninitializedData"), QString("0x%1").arg(optHeader->SizeOfUninitializedData, 8, 16, QChar('0'))},
+                {tr("AddressOfEntryPoint"), QString("0x%1").arg(optHeader->AddressOfEntryPoint, 8, 16, QChar('0'))},
+                {tr("BaseOfCode"), QString("0x%1").arg(optHeader->BaseOfCode, 8, 16, QChar('0'))},
+                {tr("ImageBase"), QString("0x%1").arg(optHeader->ImageBase, 16, 16, QChar('0'))},
+                {tr("SectionAlignment"), QString("0x%1").arg(optHeader->SectionAlignment, 8, 16, QChar('0'))},
+                {tr("FileAlignment"), QString("0x%1").arg(optHeader->FileAlignment, 8, 16, QChar('0'))},
+                {tr("DllCharacteristics"), QString("0x%1 (点击编辑)").arg(dllCharac, 4, 16, QChar('0'))}
+            };
+        }
+
+        // 填充TableWidget
+        for (int i = 0; i < optFields.size(); ++i) {
+            ui->tableWidget->insertRow(i);
+            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(optFields[i].first));
+            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(optFields[i].second));
+        }
+
+        // 弹出DLL Characteristics对话框（异常捕获）
+        try {
+            CharacteristicsDialog dlg(EditType::DLL_CHARAC, dllCharac, this);
+            if (dlg.exec() == QDialog::Accepted) {
+                WORD newDllCharac = dlg.getModifiedValue();
+                int ret = m_peModifier->setDllCharacteristics(newDllCharac);
+                if (ret != SUCCESS) {
+                    QMessageBox::warning(this, tr("警告"), tr("修改DLL Characteristics失败！错误码：%1").arg(ret));
+                    return;
+                }
+                ui->tableWidget->setItem(optFields.size()-1, 1, new QTableWidgetItem(QString("0x%1").arg(newDllCharac, 4, 16, QChar('0'))));
+                ui->statusbar->showMessage(tr("DLL Characteristics已修改，需保存生效"));
+            }
+        } catch (...) {
+            QMessageBox::critical(this, tr("错误"), tr("打开编辑对话框失败！"));
+            return;
+        }
+    }
+}
+*/
